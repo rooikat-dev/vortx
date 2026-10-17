@@ -1,6 +1,5 @@
-use clap::{Parser, Args, Subcommand};
-use tracing::{info, debug, warn, error, Level};
-use tracing_subscriber;
+use clap::{Args, Parser, Subcommand};
+use tracing::{debug, error, info, warn};
 
 /// P2P encrypted file sending program
 #[derive(Parser)]
@@ -34,7 +33,7 @@ fn main() {
     let cli = Cli::parse();
 
     // install global subscriber configured based on RUST_LOG envvar.
-    tracing_subscriber::fmt::init(); 
+    tracing_subscriber::fmt::init();
 
     match &cli.command {
         Commands::Send(file) => {
