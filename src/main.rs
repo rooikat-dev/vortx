@@ -1,22 +1,42 @@
-use clap::Parser;
+use clap::{Parser, Args, Subcommand};
 
-/// Simple program to greet a person
-#[derive(Parser, Debug)]
+/// P2P encrypted file sending program
+#[derive(Parser)]
 #[command(version, about, long_about = None)]
-struct Args {
-    /// Name of the person to greet
-    #[arg(short, long)]
-    name: String,
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
 
-    /// Number of times to greet
-    #[arg(short, long, default_value_t = 1)]
-    count: u8,
+#[derive(Subcommand)]
+enum Commands {
+    // Send a file over VORTX
+    Send(SendArgs),
+    // Receive a file over VORTX
+    Receive(ReceiveArgs),
+}
+
+#[derive(Args)]
+struct SendArgs {
+    // Path to file to send
+    file: String,
+}
+
+#[derive(Args)]
+struct ReceiveArgs {
+    // Peer connection phrase
+    phrase: String,
 }
 
 fn main() {
-    let args = Args::parse();
+    let cli = Cli::parse();
 
-    for _ in 0..args.count {
-        println!("Hello {}!", args.name);
+    match &cli.command {
+        Commands::Send(file) => {
+            println!("'send' was used, file is: {:?}", file.file);
+        }
+        Commands::Receive(phrase) => {
+            println!("'receive' was ysed, phrase is: {:?}", phrase.phrase);
+        }
     }
 }
