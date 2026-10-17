@@ -1,5 +1,5 @@
 use clap::{Parser, Args, Subcommand};
-use tracing::{info, Level};
+use tracing::{info, debug, warn, error, Level};
 use tracing_subscriber;
 
 /// P2P encrypted file sending program
@@ -38,10 +38,15 @@ fn main() {
 
     match &cli.command {
         Commands::Send(file) => {
-            info!(file = file.file, "Sending")
+            info!("Sending file: {}", file.file);
         }
         Commands::Receive(phrase) => {
-            info!(phrase = phrase.phrase, "Receivin with");
+            info!("Receiving with phrase: {}", phrase.phrase);
         }
     }
+
+    debug!("This is a debug");
+    warn!("WARNINGGGGG");
+    error!("does this end the program?");
+    info!("nope just logging");
 }
