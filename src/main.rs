@@ -1,4 +1,6 @@
 use clap::{Parser, Args, Subcommand};
+use tracing::{info, Level};
+use tracing_subscriber;
 
 /// P2P encrypted file sending program
 #[derive(Parser)]
@@ -31,12 +33,15 @@ struct ReceiveArgs {
 fn main() {
     let cli = Cli::parse();
 
+    // install global subscriber configured based on RUST_LOG envvar.
+    tracing_subscriber::fmt::init(); 
+
     match &cli.command {
         Commands::Send(file) => {
-            println!("'send' was used, file is: {:?}", file.file);
+            info!(file = file.file, "Sending")
         }
         Commands::Receive(phrase) => {
-            println!("'receive' was ysed, phrase is: {:?}", phrase.phrase);
+            info!(phrase = phrase.phrase, "Receivin with");
         }
     }
 }
