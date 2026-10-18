@@ -44,8 +44,8 @@ fn main() {
         }
     }
 
-    debug!("This is a debug");
-    warn!("WARNINGGGGG");
-    error!("does this end the program?");
-    info!("nope just logging");
+    // debug!("This is a debug");
+    // warn!("WARNINGGGGG");
+    // error!("does this end the program?");
+    // info!("nope just logging");
 }
