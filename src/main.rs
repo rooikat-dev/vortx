@@ -1,5 +1,6 @@
 use clap::{Args, Parser, Subcommand};
-use tracing::{debug, error, info, warn};
+use getrandom::{SysRng, rand_core::TryRng};
+use tracing::{debug, info};
 
 /// P2P encrypted file sending program
 #[derive(Parser)]
@@ -38,6 +39,11 @@ fn main() {
     match &cli.command {
         Commands::Send(file) => {
             info!("Sending file: {}", file.file);
+
+            let mut key = [0u8; 16];
+            SysRng.try_fill_bytes(&mut key).unwrap();
+
+            debug!("random is {:?}", key);
         }
         Commands::Receive(phrase) => {
             info!("Receiving with phrase: {}", phrase.phrase);
