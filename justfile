@@ -12,14 +12,14 @@ fix:
 # build and symlink
 dev: clean
 	@cargo build -q
-	@ln -s ./target/debug/vortx ./vortx
+	@ln -sf ./target/debug/vortx ./vortx
 	@echo "Build done"
 
 # build release build
 build: clean
 	cargo build -r
-	@ln -s ./target/release/vortx ./vortx
+	@ln -sf ./target/release/vortx ./vortx
 
 clean:
 	cargo clean
-	@rm -f ./vortx
+	rm -f ./vortx
