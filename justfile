@@ -1,3 +1,6 @@
+mode := "send"
+file := "./testfile"
+
 # Run formatting check, strict clippy, and tests in one command
 check:
     cargo fmt --all -- --check
@@ -14,6 +17,7 @@ dev: clean
 	@cargo build -q
 	@ln -sf ./target/debug/vortx ./vortx
 	@echo "Build done"
+	RUST_LOG=vortx=trace ./vortx {{mode}} {{file}}
 
 # build release build
 build: clean
