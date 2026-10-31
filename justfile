@@ -13,13 +13,11 @@ fix:
     cargo clippy --fix --allow-dirty --allow-staged
 
 # build and symlink
-dev: clean
+dev:
 	@cargo build -q
 	@ln -sf ./target/debug/vortx ./vortx
-	@echo "Build done"
 	RUST_LOG=vortx=trace ./vortx {{mode}} {{file}}
 
-# build release build
 build: clean
 	cargo build -r
 	@ln -sf ./target/release/vortx ./vortx
