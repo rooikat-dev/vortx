@@ -1,7 +1,8 @@
+mod crypto;
+
 use clap::{Args, Parser, Subcommand};
-use getrandom::{SysRng, rand_core::TryRng};
-use sha2::{Digest, Sha512};
-use tracing::{debug, info};
+use tracing::info;
+use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 /// P2P encrypted file sending program
 #[derive(Parser)]
@@ -35,31 +36,18 @@ fn main() {
     let cli = Cli::parse();
 
     // install global subscriber configured based on RUST_LOG envvar.
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::registry()
+        .with(fmt::layer())
+        .with(EnvFilter::from_default_env())
+        .init();
 
     match &cli.command {
         Commands::Send(file) => {
             info!("Sending file: {}", file.file);
 
-            let mut key = [0u8; 16];
-            SysRng.try_fill_bytes(&mut key).unwrap();
-            debug!("Random Key is: {}", hex::encode(key));
+            let ints = crypto::ints_4();
 
-            let hash512 = hex::encode(Sha512::digest(key));
-            debug!("Hash is {}", hash512);
-
-            let hash44 = hash512.get(0..11).unwrap();
-            debug!("44 Hex is {}", hash44);
-
-            let big_int = u64::from_str_radix(hash44, 16).expect("Invalid hex char");
-
-            let mask = 0x7ff;
-
-            let int_0 = big_int & mask;
-            let int_1 = (big_int >> 11) & mask;
-            let int_2 = (big_int >> 22) & mask;
-            let int_3 = (big_int >> 33) & mask;
-            debug!("Ints are: {} {} {} {}", int_0, int_1, int_2, int_3);
+            info!("Ints are: {:?}", ints);
         }
         Commands::Receive(phrase) => {
             info!("Receiving with phrase: {}", phrase.phrase);

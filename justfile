@@ -1,5 +1,7 @@
 mode := "send"
 file := "./testfile"
+log_level := "vortx::crypto=trace"
+export RUST_LOG := env_var_or_default("RUST_LOG", log_level)
 
 # Run formatting check, strict clippy, and tests in one command
 check:
@@ -16,7 +18,7 @@ fix:
 dev:
 	@cargo build -q
 	@ln -sf ./target/debug/vortx ./vortx
-	RUST_LOG=vortx=trace ./vortx {{mode}} {{file}}
+	./vortx {{mode}} {{file}}
 
 build: clean
 	cargo build -r
