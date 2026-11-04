@@ -44,10 +44,16 @@ fn main() {
     match &cli.command {
         Commands::Send(file) => {
             info!("Sending file: {}", file.file);
+            let mut keyphrase = String::from("");
 
-            let ints = crypto::ints_4();
+            let res = crypto::keyphrase_gen();
 
-            info!("Ints are: {:?}", ints);
+            match res {
+                Ok(p) => keyphrase = p,
+                Err(e) => eprintln!("{}", e),
+            }
+
+            info!("Phrase is: {}", keyphrase);
         }
         Commands::Receive(phrase) => {
             info!("Receiving with phrase: {}", phrase.phrase);
