@@ -7,7 +7,7 @@ use tracing::debug;
 pub fn keyphrase_gen() -> Result<String, String> {
     let mut depth = 0;
     let mut success = false;
-    let mut ints: [u64; 4] = [0, 0, 0, 0];
+    let mut ints: [usize; 4] = [0, 0, 0, 0];
 
     while !success {
         success = true;
@@ -26,42 +26,38 @@ pub fn keyphrase_gen() -> Result<String, String> {
         }
     }
 
-    let mut failed = false;
-    let mut keyphrase = String::from("");
+    let keyphrase = read_four_lines(ints)?;
 
-    for num in ints {
-        // is fine to truncate as ints[i] is 11 bits
-        let n = num as usize;
-        debug!("n is: {}", num);
+    Ok(keyphrase)
+}
 
-        let file = match File::open("./bip39/english.txt") {
-            Ok(fl) => fl,
-            Err(_e) => return Err(String::from("Bip39 language file not found")),
-        };
-        let reader = BufReader::new(&file);
+fn read_four_lines(targets: [usize; 4]) -> Result<String, String> {
+    let file = File::open("./bip39/english.txt")
+        .map_err(|_| String::from("Bip39 language file not found"))?;
+    let reader = BufReader::new(file);
 
-        match reader.lines().nth(n) {
-            Some(line) => match line {
-                Ok(line) => {
-                    debug!("word is: {}", line);
+    let mut results: [String; 4] = Default::default();
+    let mut remaining = 4;
+    let max_target = *targets.iter().max().unwrap_or(&0);
 
-                    if !keyphrase.is_empty() {
-                        keyphrase = keyphrase + "-" + &line;
-                    } else {
-                        keyphrase = keyphrase + &line;
-                    }
+    for (idx, line_res) in reader.lines().enumerate() {
+        if targets.contains(&idx) {
+            let line = line_res.map_err(|e| e.to_string())?;
+
+            for (pos, &target) in targets.iter().enumerate() {
+                if idx == target && results[pos].is_empty() {
+                    results[pos] = line.clone();
+                    remaining -= 1;
                 }
-                Err(_e) => failed = true,
-            },
-            None => failed = true,
+            }
         }
 
-        if failed {
-            return Err(String::from("Line not found in file"));
+        if remaining == 0 || idx >= max_target {
+            break;
         }
     }
 
-    Ok(keyphrase)
+    Ok(results.join("-"))
 }
 
 // Generates a 512 bit random hash.
@@ -88,7 +84,7 @@ fn random_512() -> String {
 // # Returns
 //
 // [u64; 4]
-fn four_ints(hash512: String) -> [u64; 4] {
+fn four_ints(hash512: String) -> [usize; 4] {
     let hash44 = hash512.get(0..11).unwrap();
     debug!("44 Hex is {}", hash44);
 
@@ -96,10 +92,10 @@ fn four_ints(hash512: String) -> [u64; 4] {
 
     let mask = 0x7ff;
 
-    let int_0 = big_int & mask;
-    let int_1 = (big_int >> 11) & mask;
-    let int_2 = (big_int >> 22) & mask;
-    let int_3 = (big_int >> 33) & mask;
+    let int_0 = (big_int & mask) as usize;
+    let int_1 = ((big_int >> 11) & mask) as usize;
+    let int_2 = ((big_int >> 22) & mask) as usize;
+    let int_3 = ((big_int >> 33) & mask) as usize;
     debug!("Ints are: {} {} {} {}", int_0, int_1, int_2, int_3);
 
     [int_0, int_1, int_2, int_3]
