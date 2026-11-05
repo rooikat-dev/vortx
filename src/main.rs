@@ -1,5 +1,8 @@
+mod crypto;
+
 use clap::{Args, Parser, Subcommand};
-use tracing::{debug, error, info, warn};
+use tracing::info;
+use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 /// P2P encrypted file sending program
 #[derive(Parser)]
@@ -33,19 +36,32 @@ fn main() {
     let cli = Cli::parse();
 
     // install global subscriber configured based on RUST_LOG envvar.
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::registry()
+        .with(fmt::layer())
+        .with(EnvFilter::from_default_env())
+        .init();
 
     match &cli.command {
         Commands::Send(file) => {
             info!("Sending file: {}", file.file);
+
+            let keyphrase = match crypto::keyphrase_gen() {
+                Ok(p) => p,
+                Err(e) => {
+                    eprintln!("Error generating keyphrase: {}", e);
+                    e
+                }
+            };
+
+            info!("Phrase is: {}", keyphrase);
         }
         Commands::Receive(phrase) => {
             info!("Receiving with phrase: {}", phrase.phrase);
         }
     }
 
-    debug!("This is a debug");
-    warn!("WARNINGGGGG");
-    error!("does this end the program?");
-    info!("nope just logging");
+    // debug!("This is a debug");
+    // warn!("WARNINGGGGG");
+    // error!("does this end the program?");
+    // info!("nope just logging");
 }
