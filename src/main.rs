@@ -47,7 +47,10 @@ fn main() {
 
             let keyphrase = match crypto::keyphrase_gen() {
                 Ok(p) => p,
-                Err(e) => e,
+                Err(e) => {
+                    eprintln!("Error generating keyphrase: {}", e);
+                    e
+                }
             };
 
             info!("Phrase is: {}", keyphrase);
