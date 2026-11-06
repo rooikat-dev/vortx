@@ -1,4 +1,5 @@
 mod crypto;
+mod discovery;
 
 use clap::{Args, Parser, Subcommand};
 use tracing::info;
@@ -45,7 +46,7 @@ fn main() {
         Commands::Send(file) => {
             info!("Sending file: {}", file.file);
 
-            let keyphrase = match crypto::keyphrase_gen() {
+            let keyphrase = match crypto::keyphrase::keyphrase_gen() {
                 Ok(p) => p,
                 Err(e) => {
                     eprintln!("Error generating keyphrase: {}", e);
@@ -54,6 +55,10 @@ fn main() {
             };
 
             info!("Phrase is: {}", keyphrase);
+            let _ = match discovery::beacon::transmit(keyphrase) {
+                Ok(ok) => ok,
+                Err(e) => eprintln!("Failed: {}", e),
+            };
         }
         Commands::Receive(phrase) => {
             info!("Receiving with phrase: {}", phrase.phrase);
