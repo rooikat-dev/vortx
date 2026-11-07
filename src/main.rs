@@ -1,8 +1,9 @@
 mod crypto;
 mod discovery;
+mod transfer;
 
 use clap::{Args, Parser, Subcommand};
-use tracing::info;
+use tracing::{debug, info};
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 /// P2P encrypted file sending program
@@ -33,7 +34,8 @@ struct ReceiveArgs {
     phrase: String,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cli = Cli::parse();
 
     // install global subscriber configured based on RUST_LOG envvar.
@@ -42,11 +44,14 @@ fn main() {
         .with(EnvFilter::from_default_env())
         .init();
 
+    let keyphrase: String;
+    let is_sending: bool;
+
     match &cli.command {
         Commands::Send(file) => {
             info!("Sending file: {}", file.file);
 
-            let keyphrase = match crypto::keyphrase::keyphrase_gen() {
+            keyphrase = match crypto::keyphrase::keyphrase_gen() {
                 Ok(p) => p,
                 Err(e) => {
                     eprintln!("Error generating keyphrase: {}", e);
@@ -55,16 +60,31 @@ fn main() {
             };
 
             info!("Phrase is: {}", keyphrase);
-            let _ = match discovery::beacon::transmit(keyphrase) {
-                Ok(ok) => ok,
-                Err(e) => eprintln!("Failed: {}", e),
-            };
+
+            is_sending = true;
         }
+
         Commands::Receive(phrase) => {
-            info!("Receiving with phrase: {}", phrase.phrase);
+            keyphrase = phrase.phrase.clone();
+            is_sending = false;
         }
     }
 
+    info!("Are we sending: {}", is_sending);
+
+    let hash_keyphrase = blake3::hash(keyphrase.as_bytes()).to_hex().to_lowercase();
+
+    debug!("The blake3 hash is: {}", hash_keyphrase);
+
+    if is_sending {
+        let _socket = match transfer::sender::init_listen(hash_keyphrase).await {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("Error creating socket: {}", e);
+                return;
+            }
+        };
+    }
     // debug!("This is a debug");
     // warn!("WARNINGGGGG");
     // error!("does this end the program?");

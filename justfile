@@ -1,4 +1,4 @@
-log_level := "vortx=info"
+log_level := "vortx=debug"
 export RUST_LOG := env_var_or_default("RUST_LOG", log_level)
 
 # Run formatting check, strict clippy, and tests in one command
