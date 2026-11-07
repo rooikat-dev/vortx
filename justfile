@@ -1,5 +1,3 @@
-mode := "send"
-file := "./testfile"
 log_level := "vortx=info"
 export RUST_LOG := env_var_or_default("RUST_LOG", log_level)
 
@@ -18,7 +16,12 @@ fix:
 dev:
 	@cargo build -q
 	@ln -sf ./target/debug/vortx ./vortx
-	./vortx {{mode}} {{file}}
+
+send file="./testfile": dev
+	./vortx send {{file}}
+
+receive phrase: dev
+	./vortx receive {{phrase}}
 
 build: clean
 	cargo build -r
